@@ -144,7 +144,7 @@
         },
         "codexOmniRoute.selectedModel": {
           "type": "string",
-          "default": "omniroute:free",
+          "default": "nvidia/nemotron-3-ultra-550b-a55b",
           "description": "Selected model ID or OmniRoute auto-router"
         },
         "codexOmniRoute.enableThinking": {

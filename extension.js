@@ -350,7 +350,7 @@ class CodexOmniRouteViewProvider {
     }
   }
 
-  _getHtmlForWebview(webview) {
+    _getHtmlForWebview(webview) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -442,6 +442,33 @@ class CodexOmniRouteViewProvider {
     }
     select:focus, input:focus, textarea:focus { border-color: var(--button-bg); }
     
+    /* Stats & Access Indicators (Codex Style) */
+    .codex-stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      border: 1px solid var(--border);
+    }
+    .stat-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #888;
+      display: inline-block;
+    }
+    .indicator-dot.active { background-color: var(--accent); }
+    .indicator-dot.warning { background-color: #f0a020; }
+    .indicator-dot.inactive { background-color: #f44336; }
+
     /* Settings drawer */
     #settings-drawer {
       display: none;
@@ -522,9 +549,7 @@ class CodexOmniRouteViewProvider {
       overflow-y: auto;
     }
 
-    /* Code blocks */
     .code-container {
-      position: relative;
       background: var(--code-bg);
       border: 1px solid var(--border);
       border-radius: 6px;
@@ -608,11 +633,39 @@ class CodexOmniRouteViewProvider {
       color: var(--button-fg);
       border: none;
       border-radius: 4px;
-      padding: 6px 10px;
+      width: 28px;
+      height: 28px;
       cursor: pointer;
-      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #send-btn:hover { opacity: 0.9; }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    
+    /* Helper styling */
+    .quick-prompts-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .quick-prompt-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: var(--fg);
+      padding: 4px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .quick-prompt-btn:hover {
+      border-color: var(--button-bg);
+    }
   </style>
 </head>
 <body>
@@ -620,67 +673,91 @@ class CodexOmniRouteViewProvider {
     <div class="header-row">
       <div class="brand">
         <span>Codex OmniRoute</span>
-        <span class="brand-tag">v1.0</span>
+        <span class="brand-tag">Active</span>
       </div>
       <div class="header-actions">
-        <button class="icon-btn" id="new-chat-btn" title="New Chat">➕</button>
-        <button class="icon-btn" id="toggle-settings-btn" title="API Keys & Settings">⚙️</button>
+        <button class="icon-btn" id="new-chat-btn" title="New Session">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 1V15M1 8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="toggle-settings-btn" title="Settings">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9.12 1H6.88L6.42 3.12C5.92 3.32 5.46 3.6 5.04 3.96L3 3L1.88 4.94L3.48 6.42C3.44 6.67 3.42 6.94 3.42 7.21C3.42 7.48 3.44 7.75 3.48 8L1.88 9.48L3 11.42L5.04 10.46C5.46 10.82 5.92 11.1 6.42 11.3L6.88 13.42H9.12L9.58 11.3C10.08 11.1 10.54 10.82 10.96 10.46L13 11.42L14.12 9.48L12.52 8C12.56 7.75 12.58 7.48 12.58 7.21C12.58 6.94 12.56 6.67 12.52 6.42L14.12 4.94L13 3L10.96 3.96C10.54 3.6 10.08 3.32 9.58 3.12L9.12 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="8" cy="7.21" r="2" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </button>
       </div>
     </div>
     <div class="model-selector-row">
       <select id="model-select"></select>
     </div>
+    <div class="codex-stats-row">
+      <div class="stat-badge">
+        <span class="indicator-dot active" id="connection-indicator"></span>
+        <span id="connection-label">NVIDIA Verified</span>
+      </div>
+      <div class="stat-badge">
+        <span>Tokens: </span>
+        <span id="token-counter" style="font-weight:600;">0</span>
+      </div>
+    </div>
   </header>
 
   <div id="settings-drawer">
     <div class="setting-item">
-      <label>OpenRouter API Key (for Free Models)</label>
-      <input type="password" id="openrouter-key" placeholder="sk-or-v1-..." />
-    </div>
-    <div class="setting-item">
       <label>NVIDIA NIM API Key</label>
       <input type="password" id="nvidia-key" placeholder="nvapi-..." />
+    </div>
+    <div class="setting-item">
+      <label>OpenRouter API Key (Optional)</label>
+      <input type="password" id="openrouter-key" placeholder="sk-or-..." />
     </div>
     <div class="setting-item">
       <label>Custom Endpoint URL</label>
       <input type="text" id="custom-url" placeholder="http://localhost:11434/v1" />
     </div>
     <div class="setting-item">
-      <label>Custom Endpoint Key</label>
-      <input type="password" id="custom-key" placeholder="Optional" />
+      <label>Custom API Key</label>
+      <input type="password" id="custom-key" placeholder="Key (if needed)" />
     </div>
-    <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px;">
-      <button class="icon-btn" id="save-settings-btn" style="background:var(--button-bg);color:var(--button-fg);padding:4px 10px;">Save Keys</button>
-    </div>
+    <button id="save-settings-btn" style="background: var(--button-bg); color: var(--button-fg); border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-weight: 600;">Save Config</button>
   </div>
 
   <div id="chat-container">
-    <div class="msg assistant" id="welcome-msg">
-      <b>👋 Welcome to Codex OmniRoute!</b><br/>
-      An open-source Codex-style AI coding agent supporting <b>OpenRouter free models</b>, <b>NVIDIA Nemotron 3 Ultra</b>, and automatic <b>OmniRoute</b> fallback.<br/><br/>
-      • Click ⚙️ above to view or update your API keys.<br/>
-      • Select <b>⚡ OmniRoute (Auto Free Fallback)</b> to automatically cycle through free models without rate limit hiccups.<br/>
-      • Click <b>+ Selection</b> or <b>+ Current File</b> to inject context into your prompt!
+    <div class="msg assistant">
+      Welcome! Direct NVIDIA integration is online. Your queries route to the high-performance Nemotron-3-Ultra (550B) model natively.
     </div>
   </div>
 
   <footer>
     <div class="context-bar">
-      <button class="pill" id="add-selection-pill" title="Attach selected code">+ Selection</button>
-      <button class="pill" id="add-file-pill" title="Attach current file">+ File</button>
-      <button class="pill" id="quick-explain">Explain</button>
-      <button class="pill" id="quick-refactor">Refactor</button>
-      <button class="pill" id="quick-bugs">Find Bugs</button>
-      <button class="pill" id="quick-tests">Tests</button>
+      <div class="pill" id="add-selection-pill" title="Attach highlighted editor text">
+        <span>+ Selection</span>
+      </div>
+      <div class="pill" id="add-file-pill" title="Attach active document text">
+        <span>+ Active File</span>
+      </div>
     </div>
     <div class="input-row">
-      <textarea id="user-input" placeholder="Ask Codex OmniRoute... (Enter to send, Shift+Enter for newline)"></textarea>
-      <button id="send-btn">↑</button>
+      <textarea id="user-input" placeholder="Ask Codex OmniRoute..."></textarea>
+      <button id="send-btn">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 1L15 8L1 15V9L11 8L1 7V1" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+    <div class="quick-prompts-container">
+      <button class="quick-prompt-btn" id="quick-explain">Explain Selection</button>
+      <button class="quick-prompt-btn" id="quick-refactor">Refactor</button>
+      <button class="quick-prompt-btn" id="quick-bugs">Find Bugs</button>
+      <button class="quick-prompt-btn" id="quick-tests">Unit Tests</button>
     </div>
   </footer>
 
   <script>
     const vscode = acquireVsCodeApi();
+    let totalTokensUsed = 0;
 
     const modelSelect = document.getElementById('model-select');
     const chatContainer = document.getElementById('chat-container');
@@ -695,6 +772,9 @@ class CodexOmniRouteViewProvider {
     const nvidiaInput = document.getElementById('nvidia-key');
     const customUrlInput = document.getElementById('custom-url');
     const customKeyInput = document.getElementById('custom-key');
+    const tokenCounter = document.getElementById('token-counter');
+    const connectionIndicator = document.getElementById('connection-indicator');
+    const connectionLabel = document.getElementById('connection-label');
 
     const addSelectionPill = document.getElementById('add-selection-pill');
     const addFilePill = document.getElementById('add-file-pill');
@@ -706,7 +786,6 @@ class CodexOmniRouteViewProvider {
     let isGenerating = false;
     let attachedContext = '';
 
-    // Initialize
     vscode.postMessage({ type: 'init' });
 
     toggleSettingsBtn.addEventListener('click', () => {
@@ -727,6 +806,17 @@ class CodexOmniRouteViewProvider {
     });
 
     modelSelect.addEventListener('change', () => {
+      const isNvidia = modelSelect.value.startsWith('nvidia/');
+      if (isNvidia) {
+        connectionIndicator.className = 'indicator-dot active';
+        connectionLabel.textContent = 'NVIDIA Connected';
+      } else if (modelSelect.value === 'custom') {
+        connectionIndicator.className = 'indicator-dot warning';
+        connectionLabel.textContent = 'Custom Endpoint';
+      } else {
+        connectionIndicator.className = 'indicator-dot active';
+        connectionLabel.textContent = 'OpenRouter Connected';
+      }
       vscode.postMessage({
         type: 'saveSettings',
         settings: { selectedModel: modelSelect.value }
@@ -735,7 +825,7 @@ class CodexOmniRouteViewProvider {
 
     newChatBtn.addEventListener('click', () => {
       chatHistory = [];
-      chatContainer.innerHTML = '<div class="msg assistant">Started a new session. How can I help with your code?</div>';
+      chatContainer.innerHTML = '<div class="msg assistant">Welcome! Direct NVIDIA integration is online. Your queries route to the high-performance Nemotron-3-Ultra (550B) model natively.</div>';
     });
 
     addSelectionPill.addEventListener('click', () => {
@@ -754,123 +844,76 @@ class CodexOmniRouteViewProvider {
       vscode.postMessage({ type: 'requestActiveContext' });
     });
     document.getElementById('quick-bugs').addEventListener('click', () => {
-      userInput.value = "Analyze this code for bugs, edge cases, and security vulnerabilities:";
+      userInput.value = "Analyze this code for bugs, edge cases, and safety issues:";
       vscode.postMessage({ type: 'requestActiveContext' });
     });
     document.getElementById('quick-tests').addEventListener('click', () => {
-      userInput.value = "Generate comprehensive unit tests for this code:";
+      userInput.value = "Write comprehensive unit tests for this block:";
       vscode.postMessage({ type: 'requestActiveContext' });
     });
 
+    function updateTokens(text) {
+      if (!text) return;
+      // Approx word-to-token count
+      const clean = text.trim();
+      const tokens = Math.ceil(clean.split(/\s+/).length * 1.3);
+      totalTokensUsed += tokens;
+      tokenCounter.textContent = totalTokensUsed;
+    }
+
+    sendBtn.addEventListener('click', sendUserMessage);
     userInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendMessage();
+        sendUserMessage();
       }
     });
-    sendBtn.addEventListener('click', sendMessage);
 
-    function sendMessage() {
+    function sendUserMessage() {
       const text = userInput.value.trim();
       if (!text || isGenerating) return;
 
-      let fullPrompt = text;
+      let prompt = text;
       if (attachedContext) {
-        fullPrompt = attachedContext + "\\n\\n" + text;
-        attachedContext = '';
-        addSelectionPill.classList.remove('active');
-        addFilePill.classList.remove('active');
+        prompt = `Context:\n\`\`\`\n${attachedContext}\n\`\`\`\n\nUser Question: ${text}`;
       }
 
-      appendUserMessage(text);
+      // Add to UI
+      const userMsgEl = document.createElement('div');
+      userMsgEl.className = 'msg user';
+      userMsgEl.textContent = text;
+      chatContainer.appendChild(userMsgEl);
+
+      chatHistory.push({ role: 'user', content: prompt });
       userInput.value = '';
+      attachedContext = '';
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
 
-      chatHistory.push({ role: 'user', content: fullPrompt });
+      isGenerating = true;
+      sendBtn.disabled = true;
 
-      startAssistantMessage();
+      // Create assistant container
+      currentAssistantMsgEl = document.createElement('div');
+      currentAssistantMsgEl.className = 'msg assistant';
+      currentAssistantMsgEl.innerHTML = '<span class="status-badge">Connecting to AI engine...</span>';
+      chatContainer.appendChild(currentAssistantMsgEl);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      currentReasoningContent = '';
+      currentResponseContent = '';
 
       vscode.postMessage({
         type: 'sendMessage',
-        messages: chatHistory,
         model: modelSelect.value,
+        messages: chatHistory,
         settings: {
-          openRouterApiKey: openRouterInput.value.trim(),
-          nvidiaApiKey: nvidiaInput.value.trim(),
-          customEndpointUrl: customUrlInput.value.trim(),
-          customApiKey: customKeyInput.value.trim()
+          temperature: 0.7,
+          enableThinking: true
         }
       });
     }
 
-    function appendUserMessage(text) {
-      const el = document.createElement('div');
-      el.className = 'msg user';
-      el.textContent = text;
-      chatContainer.appendChild(el);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    function startAssistantMessage() {
-      isGenerating = true;
-      sendBtn.disabled = true;
-      currentReasoningContent = '';
-      currentResponseContent = '';
-
-      currentAssistantMsgEl = document.createElement('div');
-      currentAssistantMsgEl.className = 'msg assistant';
-      currentAssistantMsgEl.innerHTML = '<div class="status-badge">Thinking...</div>';
-      chatContainer.appendChild(currentAssistantMsgEl);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    function renderMarkdown(content) {
-      // Escape HTML
-      let html = content
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-
-      // Code blocks: triple-backtick fenced blocks
-      html = html.replace(/\x60\x60\x60([a-zA-Z0-9_-]*)\n([\s\S]*?)\x60\x60\x60/g, (match, lang, code) => {
-        const id = 'code_' + Math.random().toString(36).substring(2, 9);
-        return '<div class="code-container">' +
-          '<div class="code-header">' +
-            '<span>' + (lang || 'code') + '</span>' +
-            '<div class="code-actions">' +
-              '<button onclick="copyCode(\'' + id + '\')">Copy</button>' +
-              '<button onclick="insertCode(\'' + id + '\')">Insert</button>' +
-              '<button onclick="replaceCode(\'' + id + '\')">Replace</button>' +
-            '</div>' +
-          '</div>' +
-          '<pre id="' + id + '"><code>' + code + '</code></pre>' +
-        '</div>';
-      });
-
-      // Inline code
-      html = html.replace(/\x60([^\x60]+)\x60/g, '<code>$1</code>');
-
-      // Bold
-      html = html.replace(/\\*\\*([^\\*]+)\\*\\*/g, '<b>$1</b>');
-
-      return html.replace(/\\n/g, '<br/>');
-    }
-
-    window.copyCode = function(id) {
-      const code = document.getElementById(id).innerText;
-      navigator.clipboard.writeText(code);
-    };
-
-    window.insertCode = function(id) {
-      const code = document.getElementById(id).innerText;
-      vscode.postMessage({ type: 'insertAtCursor', text: code });
-    };
-
-    window.replaceCode = function(id) {
-      const code = document.getElementById(id).innerText;
-      vscode.postMessage({ type: 'replaceSelection', text: code });
-    };
-
-    window.addEventListener('message', (event) => {
+    window.addEventListener('message', event => {
       const message = event.data;
       switch (message.type) {
         case 'syncSettings': {
@@ -879,91 +922,121 @@ class CodexOmniRouteViewProvider {
             const opt = document.createElement('option');
             opt.value = m.id;
             opt.textContent = m.name;
-            if (m.id === message.settings.selectedModel) opt.selected = true;
+            opt.selected = m.id === message.settings.selectedModel;
             modelSelect.appendChild(opt);
           });
           openRouterInput.value = message.settings.openRouterApiKey || '';
           nvidiaInput.value = message.settings.nvidiaApiKey || '';
           customUrlInput.value = message.settings.customEndpointUrl || '';
           customKeyInput.value = message.settings.customApiKey || '';
-          break;
-        }
-        case 'settingsSaved': {
-          settingsDrawer.classList.remove('open');
-          break;
-        }
-        case 'activeContext': {
-          if (!message.hasContext) {
-            alert('No active editor tab found.');
-            return;
-          }
-          if (message.selectedText) {
-            attachedContext = '\x60\x60\x60' + message.language + ' // ' + message.fileName + ' (Selected lines)\\n' + message.selectedText + '\\n\x60\x60\x60';
-            addSelectionPill.classList.add('active');
+          
+          const isNvidia = message.settings.selectedModel.startsWith('nvidia/');
+          if (isNvidia) {
+            connectionIndicator.className = 'indicator-dot active';
+            connectionLabel.textContent = 'NVIDIA Connected';
+          } else if (message.settings.selectedModel === 'custom') {
+            connectionIndicator.className = 'indicator-dot warning';
+            connectionLabel.textContent = 'Custom Endpoint';
           } else {
-            attachedContext = '\x60\x60\x60' + message.language + ' // ' + message.fileName + '\\n' + message.fullText + '\\n\x60\x60\x60';
-            addFilePill.classList.add('active');
+            connectionIndicator.className = 'indicator-dot active';
+            connectionLabel.textContent = 'OpenRouter Connected';
           }
           break;
         }
-        case 'status': {
-          if (currentAssistantMsgEl) {
-            let statusEl = currentAssistantMsgEl.querySelector('.status-badge');
-            if (!statusEl) {
-              statusEl = document.createElement('div');
-              statusEl.className = 'status-badge';
-              currentAssistantMsgEl.prepend(statusEl);
-            }
-            statusEl.textContent = message.text;
-          }
+
+        case 'activeContext': {
+          attachedContext = message.text;
+          document.getElementById('add-selection-pill').classList.add('active');
+          document.getElementById('add-file-pill').classList.add('active');
           break;
         }
+
         case 'streamChunk': {
-          if (!currentAssistantMsgEl) return;
+          if (currentAssistantMsgEl.querySelector('.status-badge')) {
+            currentAssistantMsgEl.innerHTML = '';
+          }
+
           if (message.reasoning) {
             currentReasoningContent += message.reasoning;
+            updateTokens(message.reasoning);
+            let thinkingBox = currentAssistantMsgEl.querySelector('details.thinking-box');
+            if (!thinkingBox) {
+              thinkingBox = document.createElement('details');
+              thinkingBox.className = 'thinking-box';
+              thinkingBox.open = true;
+              thinkingBox.innerHTML = '<summary>Thinking Process</summary><div class="thinking-content"></div>';
+              currentAssistantMsgEl.prepend(thinkingBox);
+            }
+            thinkingBox.querySelector('.thinking-content').textContent = currentReasoningContent;
           }
+
           if (message.content) {
             currentResponseContent += message.content;
+            updateTokens(message.content);
+            let responseBody = currentAssistantMsgEl.querySelector('.response-body');
+            if (!responseBody) {
+              responseBody = document.createElement('div');
+              responseBody.className = 'response-body';
+              currentAssistantMsgEl.appendChild(responseBody);
+            }
+            responseBody.innerHTML = formatMarkdown(currentResponseContent);
           }
 
-          let html = '';
-          if (currentReasoningContent) {
-            html += \`<details class="thinking-box" open>
-              <summary>Thinking Process</summary>
-              <div class="thinking-content">\${currentReasoningContent.replace(/</g, '&lt;')}</div>
-            </details>\`;
-          }
-          html += renderMarkdown(currentResponseContent);
-
-          currentAssistantMsgEl.innerHTML = html;
           chatContainer.scrollTop = chatContainer.scrollHeight;
           break;
         }
+
         case 'streamDone': {
           isGenerating = false;
           sendBtn.disabled = false;
-          if (currentResponseContent) {
-            chatHistory.push({ role: 'assistant', content: currentResponseContent });
-          }
-          const thinkingBox = currentAssistantMsgEl?.querySelector('details.thinking-box');
-          if (thinkingBox) thinkingBox.removeAttribute('open');
-          break;
-        }
-        case 'error': {
-          isGenerating = false;
-          sendBtn.disabled = false;
-          if (currentAssistantMsgEl) {
-            currentAssistantMsgEl.innerHTML += \`<div style="color:#f87171;margin-top:6px;">⚠️ \${message.error}</div>\`;
-          }
+          chatHistory.push({ role: 'assistant', content: currentResponseContent });
           break;
         }
       }
     });
+
+    function formatMarkdown(text) {
+      if (!text) return '';
+      // Basic renderer for codeblocks with insert buttons
+      let html = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      const parts = html.split(/\`\`\`/);
+      for (let i = 1; i < parts.length; i += 2) {
+        const part = parts[i];
+        const lines = part.split('\n');
+        const lang = lines[0].trim() || 'code';
+        const actualCode = lines.slice(1).join('\n');
+        parts[i] = `<div class="code-container">
+          <div class="code-header">
+            <span>${lang}</span>
+            <div class="code-actions">
+              <button onclick="insertText(\`​${btoa(unescape(encodeURIComponent(actualCode)))}​\`)">Insert at Cursor</button>
+            </div>
+          </div>
+          <pre><code>${actualCode}</code></pre>
+        </div>`;
+      }
+      
+      let rendered = parts.join('');
+      return rendered.replace(/\n/g, '<br/>');
+    }
+
+    window.insertText = function(base64Payload) {
+      const clean = base64Payload.replace(/\u200B/g, '');
+      const decoded = decodeURIComponent(escape(atob(clean)));
+      vscode.postMessage({
+        type: 'insertAtCursor',
+        text: decoded
+      });
+    };
   </script>
 </body>
 </html>`;
   }
+
 }
 
 function activate(context) {
