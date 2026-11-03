@@ -1,0 +1,49 @@
+name: Build and Package Codex OmniRoute Extension
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate Extension Manifest and Syntax
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            console.log('Building ' + pkg.name + ' v' + pkg.version);
+            require('./extension.js');
+            console.log('Extension syntax check passed.');
+          "
+
+      - name: Package VSIX
+        run: |
+          npx --yes @vscode/vsce package --no-dependencies --out codex-omniroute.vsix
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-omniroute-vsix
+          path: codex-omniroute.vsix
+
+      - name: Release on Tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: codex-omniroute.vsix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

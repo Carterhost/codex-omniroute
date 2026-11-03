@@ -1,0 +1,163 @@
+{
+  "name": "codex-omniroute",
+  "displayName": "Codex OmniRoute – AI Coding Agent",
+  "description": "Open-source Codex-style AI coding agent for Antigravity & VS Code. Supports OpenRouter, free models, NVIDIA NIM, and OmniRoute dynamic model swapping.",
+  "version": "1.0.0",
+  "publisher": "omniroute",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/omniroute/codex-omniroute"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "codex",
+    "omniroute",
+    "openrouter",
+    "nvidia",
+    "nemotron",
+    "ai",
+    "chat",
+    "agent",
+    "free-models"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "icon": "resources/icon.svg",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codexOmniRoute.openSidebar",
+        "title": "Open Codex OmniRoute Sidebar",
+        "category": "Codex OmniRoute",
+        "icon": "resources/icon.svg"
+      },
+      {
+        "command": "codexOmniRoute.newChat",
+        "title": "New Chat",
+        "category": "Codex OmniRoute",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "codexOmniRoute.explainSelection",
+        "title": "Explain Selected Code",
+        "category": "Codex OmniRoute"
+      },
+      {
+        "command": "codexOmniRoute.refactorSelection",
+        "title": "Refactor / Optimize Selection",
+        "category": "Codex OmniRoute"
+      },
+      {
+        "command": "codexOmniRoute.findBugs",
+        "title": "Find Bugs in Selection",
+        "category": "Codex OmniRoute"
+      },
+      {
+        "command": "codexOmniRoute.generateTests",
+        "title": "Generate Unit Tests for Selection",
+        "category": "Codex OmniRoute"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codexOmniRouteViewContainer",
+          "title": "Codex OmniRoute",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "codexOmniRouteViewContainer": [
+        {
+          "id": "codexOmniRoute.chatView",
+          "type": "webview",
+          "name": "Codex OmniRoute"
+        }
+      ]
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "codexOmniRoute.explainSelection",
+          "group": "codexOmniRoute@1",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "codexOmniRoute.refactorSelection",
+          "group": "codexOmniRoute@2",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "codexOmniRoute.findBugs",
+          "group": "codexOmniRoute@3",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "codexOmniRoute.generateTests",
+          "group": "codexOmniRoute@4",
+          "when": "editorHasSelection"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "codexOmniRoute.newChat",
+          "when": "view == codexOmniRoute.chatView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Codex OmniRoute",
+      "properties": {
+        "codexOmniRoute.openRouterApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your OpenRouter API Key (sk-or-...)"
+        },
+        "codexOmniRoute.nvidiaApiKey": {
+          "type": "string",
+          "default": "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",
+          "description": "Your NVIDIA NIM API Key (nvapi-...)"
+        },
+        "codexOmniRoute.customEndpointUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Custom OpenAI-compatible base URL (e.g. http://localhost:11434/v1)"
+        },
+        "codexOmniRoute.customApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Custom OpenAI-compatible API key"
+        },
+        "codexOmniRoute.selectedModel": {
+          "type": "string",
+          "default": "omniroute:free",
+          "description": "Selected model ID or OmniRoute auto-router"
+        },
+        "codexOmniRoute.enableThinking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable reasoning and thinking traces for supported models"
+        },
+        "codexOmniRoute.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "description": "Sampling temperature"
+        }
+      }
+    }
+  }
+}
+
