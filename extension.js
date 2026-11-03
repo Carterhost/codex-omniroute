@@ -994,15 +994,14 @@ class CodexOmniRouteViewProvider {
         const lines = part.split('\n');
         const lang = lines[0].trim() || 'code';
         const actualCode = lines.slice(1).join('\n');
-        parts[i] = `<div class="code-container">
+        parts[i] = '\n<div class="code-container">'
           <div class="code-header">
-            <span>${lang}</span>
+            ' + '<span>' + lang + '</span>' + '
             <div class="code-actions">
               <button onclick="insertText(\`​${btoa(unescape(encodeURIComponent(actualCode)))}​\`)">Insert at Cursor</button>
             </div>
           </div>
-          <pre><code>${actualCode}</code></pre>
-        </div>`;
+          ' + '<pre><code>' + actualCode + '</code></pre>\n</div>';
       }
       
       let rendered = parts.join('');
