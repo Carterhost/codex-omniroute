@@ -2,7 +2,7 @@
   "name": "codex-omniroute",
   "displayName": "Codex OmniRoute \u2013 AI Coding Agent",
   "description": "Open-source Codex-style AI coding agent for Antigravity & VS Code. Supports OpenRouter, free models, NVIDIA NIM, and OmniRoute dynamic model swapping.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "omniroute",
   "license": "MIT",
   "repository": {
