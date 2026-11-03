@@ -1,29 +1,14 @@
 /**
- * Codex OmniRoute - AI Coding Agent Extension for Antigravity & VS Code
+ * Codex - AI Coding Agent Extension for Antigravity & VS Code
  * License: MIT
  */
 
 const vscode = require('vscode');
 
-const FREE_MODELS_CHAIN = [
-  'deepseek/deepseek-r1:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemini-2.0-flash-exp:free',
-  'qwen/qwen-2.5-coder-32b-instruct:free',
-  'mistralai/mistral-small-24b-instruct-2501:free'
-];
+
 
 const ALL_MODELS = [
-  { id: 'omniroute:free', name: '⚡ OmniRoute (Auto Free Fallback)', provider: 'omniroute' },
-  { id: 'nvidia/nemotron-3-ultra-550b-a55b', name: 'NVIDIA Nemotron 3 Ultra (550B Reasoning)', provider: 'nvidia' },
-  { id: 'deepseek/deepseek-r1:free', name: 'DeepSeek R1 (Free - Reasoning)', provider: 'openrouter' },
-  { id: 'deepseek/deepseek-chat:free', name: 'DeepSeek Chat V3 (Free)', provider: 'openrouter' },
-  { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B Instruct (Free)', provider: 'openrouter' },
-  { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (Free)', provider: 'openrouter' },
-  { id: 'google/gemini-2.0-flash-thinking-exp:free', name: 'Gemini 2.0 Flash Thinking (Free)', provider: 'openrouter' },
-  { id: 'qwen/qwen-2.5-coder-32b-instruct:free', name: 'Qwen 2.5 Coder 32B (Free)', provider: 'openrouter' },
-  { id: 'mistralai/mistral-small-24b-instruct-2501:free', name: 'Mistral Small 24B (Free)', provider: 'openrouter' },
-  { id: 'custom', name: 'Custom OpenAI-Compatible Endpoint', provider: 'custom' }
+  { id: 'nvidia/nemotron-3-ultra-550b-a55b', name: 'NVIDIA Nemotron 3 Ultra (550B)', provider: 'nvidia' }
 ];
 
 class CodexOmniRouteViewProvider {
@@ -160,7 +145,7 @@ class CodexOmniRouteViewProvider {
     const enableThinking = Boolean(settings?.enableThinking ?? config.get('enableThinking', true));
 
     // Handle OmniRoute Auto Free Fallback chain
-    if (model === 'omniroute:free') {
+    if (model === 'nvidia/nemotron-3-ultra-550b-a55b') {
       let lastError = null;
       for (const fallbackModel of FREE_MODELS_CHAIN) {
         this._postMessage({
@@ -223,7 +208,7 @@ class CodexOmniRouteViewProvider {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'Codex-OmniRoute-VSCode/1.0'
+        'User-Agent': 'Codex-VSCode/1.0'
       },
       body: JSON.stringify(payload),
       signal: this._abortController?.signal
@@ -248,7 +233,7 @@ class CodexOmniRouteViewProvider {
     const headers = {
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://github.com/omniroute/codex-omniroute',
-      'X-Title': 'Codex OmniRoute'
+      'X-Title': 'Codex'
     };
     if (apiKey) {
       headers['Authorization'] = `Bearer ${apiKey}`;
@@ -356,7 +341,7 @@ class CodexOmniRouteViewProvider {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Codex OmniRoute</title>
+  <title>Codex</title>
   <style>
     :root {
       --bg: var(--vscode-sideBar-background, #1e1e1e);
@@ -672,7 +657,7 @@ class CodexOmniRouteViewProvider {
   <header>
     <div class="header-row">
       <div class="brand">
-        <span>Codex OmniRoute</span>
+        <span>Codex</span>
         <span class="brand-tag">Active</span>
       </div>
       <div class="header-actions">
@@ -740,7 +725,7 @@ class CodexOmniRouteViewProvider {
       </div>
     </div>
     <div class="input-row">
-      <textarea id="user-input" placeholder="Ask Codex OmniRoute..."></textarea>
+      <textarea id="user-input" placeholder="Ask Codex..."></textarea>
       <button id="send-btn">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1 1L15 8L1 15V9L11 8L1 7V1" fill="currentColor"/>
