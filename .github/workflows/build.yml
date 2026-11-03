@@ -22,12 +22,20 @@ jobs:
 
       - name: Validate Extension Manifest and Syntax
         run: |
+          # Validate package.json is parseable and has required fields
           node -e "
             const pkg = require('./package.json');
-            console.log('Building ' + pkg.name + ' v' + pkg.version);
-            require('./extension.js');
-            console.log('Extension syntax check passed.');
+            console.log('Package: ' + pkg.name + ' v' + pkg.version);
+            if (!pkg.main) throw new Error('Missing main field');
+            if (!pkg.contributes) throw new Error('Missing contributes field');
+            console.log('package.json manifest OK');
           "
+          # Syntax-only check (does not execute, so vscode module is not needed)
+          node --check extension.js
+          echo "extension.js syntax check passed"
+
+      - name: Run Extension Tests
+        run: node test/test_extension.js
 
       - name: Package VSIX
         run: |
