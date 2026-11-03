@@ -830,24 +830,24 @@ class CodexOmniRouteViewProvider {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
 
-      // Code blocks ```lang\ncode\n```
-      html = html.replace(/```([a-zA-Z0-9_-]*)\n([\\s\\S]*?)```/g, (match, lang, code) => {
+      // Code blocks: triple-backtick fenced blocks
+      html = html.replace(/\x60\x60\x60([a-zA-Z0-9_-]*)\n([\s\S]*?)\x60\x60\x60/g, (match, lang, code) => {
         const id = 'code_' + Math.random().toString(36).substring(2, 9);
-        return \`<div class="code-container">
-          <div class="code-header">
-            <span>\${lang || 'code'}</span>
-            <div class="code-actions">
-              <button onclick="copyCode('\${id}')">Copy</button>
-              <button onclick="insertCode('\${id}')">Insert</button>
-              <button onclick="replaceCode('\${id}')">Replace</button>
-            </div>
-          </div>
-          <pre id="\${id}"><code>\${code}</code></pre>
-        </div>\`;
+        return '<div class="code-container">' +
+          '<div class="code-header">' +
+            '<span>' + (lang || 'code') + '</span>' +
+            '<div class="code-actions">' +
+              '<button onclick="copyCode(\'' + id + '\')">Copy</button>' +
+              '<button onclick="insertCode(\'' + id + '\')">Insert</button>' +
+              '<button onclick="replaceCode(\'' + id + '\')">Replace</button>' +
+            '</div>' +
+          '</div>' +
+          '<pre id="' + id + '"><code>' + code + '</code></pre>' +
+        '</div>';
       });
 
       // Inline code
-      html = html.replace(/\`([^\\`]+)\`/g, '<code>$1</code>');
+      html = html.replace(/\x60([^\x60]+)\x60/g, '<code>$1</code>');
 
       // Bold
       html = html.replace(/\\*\\*([^\\*]+)\\*\\*/g, '<b>$1</b>');
@@ -898,10 +898,10 @@ class CodexOmniRouteViewProvider {
             return;
           }
           if (message.selectedText) {
-            attachedContext = \`\`\`\${message.language} // \${message.fileName} (Selected lines)\\n\${message.selectedText}\\n\`\`\`;
+            attachedContext = '\x60\x60\x60' + message.language + ' // ' + message.fileName + ' (Selected lines)\\n' + message.selectedText + '\\n\x60\x60\x60';
             addSelectionPill.classList.add('active');
           } else {
-            attachedContext = \`\`\`\${message.language} // \${message.fileName}\\n\${message.fullText}\\n\`\`\`;
+            attachedContext = '\x60\x60\x60' + message.language + ' // ' + message.fileName + '\\n' + message.fullText + '\\n\x60\x60\x60';
             addFilePill.classList.add('active');
           }
           break;
