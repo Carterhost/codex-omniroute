@@ -32,7 +32,7 @@
     "onStartupFinished"
   ],
   "main": "./extension.js",
-  "icon": "resources/icon.svg",
+  "icon": "resources/icon.png",
   "contributes": {
     "commands": [
       {
@@ -160,4 +160,3 @@
     }
   }
 }
-

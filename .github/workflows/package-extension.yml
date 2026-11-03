@@ -1,0 +1,45 @@
+name: Package Extension
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin jq
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Convert SVG to PNG Icon
+        run: rsvg-convert -w 128 -h 128 resources/icon.svg -o resources/icon.png
+
+      - name: Update package.json Icon Path
+        run: |
+          jq '.icon = "resources/icon.png"' package.json > package.json.tmp && mv package.json.tmp package.json
+
+      - name: Package VS Code Extension
+        run: npx @vscode/vsce package --no-dependencies --out codex-omniroute.vsix
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-omniroute-vsix
+          path: codex-omniroute.vsix
