@@ -860,7 +860,7 @@ class CodexOmniRouteViewProvider {
 
       let prompt = text;
       if (attachedContext) {
-        prompt = `Context:\n\`\`\`\n${attachedContext}\n\`\`\`\n\nUser Question: ${text}`;
+        prompt = 'Context:\n```\n' + attachedContext + '\n```\n\nUser Question: ' + text;
       }
 
       // Add to UI
