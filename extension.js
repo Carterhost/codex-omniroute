@@ -91,7 +91,7 @@ class CodexOmniRouteViewProvider {
         nvidiaApiKey: config.get('nvidiaApiKey') || '',
         customEndpointUrl: config.get('customEndpointUrl') || '',
         customApiKey: config.get('customApiKey') || '',
-        selectedModel: config.get('selectedModel') || 'omniroute:free',
+        selectedModel: config.get('selectedModel') || 'deepseek/deepseek-r1:free',
         enableThinking: config.get('enableThinking', true),
         temperature: config.get('temperature', 0.7)
       }
