@@ -88,10 +88,10 @@ class CodexOmniRouteViewProvider {
       models: ALL_MODELS,
       settings: {
         openRouterApiKey: config.get('openRouterApiKey') || '',
-        nvidiaApiKey: config.get('nvidiaApiKey') || '',
+        nvidiaApiKey: config.get('nvidiaApiKey') || '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',
         customEndpointUrl: config.get('customEndpointUrl') || '',
         customApiKey: config.get('customApiKey') || '',
-        selectedModel: config.get('selectedModel') || 'deepseek/deepseek-r1:free',
+        selectedModel: config.get('selectedModel') || 'nvidia/nemotron-3-ultra-550b-a55b',
         enableThinking: config.get('enableThinking', true),
         temperature: config.get('temperature', 0.7)
       }
